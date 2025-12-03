@@ -29,8 +29,8 @@ struct DetectionResult: Codable {
 
 class ChemTrailDetectionService {
     private static let aiProxyService = AIProxyService(
-        partialKey: "v2|a7b1e3b8|I67Q5YP4C_hJCfEF",
-        serviceURL: "https://api.aiproxy.com/804c8257/fb6c7d06"
+        partialKey: Config.aiProxyPartialKey,
+        serviceURL: Config.aiProxyServiceURL
     )
 
     /// Analyzes an image using OpenAI's GPT-4o Vision API via AIProxy

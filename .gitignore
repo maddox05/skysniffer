@@ -5,6 +5,9 @@ xcuserdata/
 DerivedData/
 .DS_Store
 
+# Secret Configuration (DO NOT COMMIT)
+test_app/Config.swift
+
 # Build
 build/
 *.ipa
