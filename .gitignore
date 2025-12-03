@@ -1,0 +1,25 @@
+# Xcode
+*.xcuserstate
+*.xcuserdatad
+xcuserdata/
+DerivedData/
+.DS_Store
+
+# Build
+build/
+*.ipa
+
+# Swift Package Manager
+.swiftpm/
+Packages/
+.build/
+
+# CocoaPods
+Pods/
+*.lock
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/test_output

@@ -6,19 +6,224 @@
 //
 
 import SwiftUI
+import SwiftData
+import PhotosUI
+import SuperwallKit
 
 struct ContentView: View {
+    @Environment(\.modelContext) private var modelContext
+    @Query(sort: \ScanResult.timestamp, order: .reverse) private var scans: [ScanResult]
+    @State private var viewModel = ScanViewModel()
+
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        ZStack {
+            if viewModel.showingOnboarding {
+                OnboardingView {
+                    // Register the paywall placement
+                    Superwall.shared.register(placement: "campaign_trigger")
+
+                    // Complete onboarding after paywall is dismissed
+                    withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+                        viewModel.completeOnboarding()
+                    }
+                }
+                .transition(.opacity.combined(with: .scale(scale: 0.95)))
+            } else {
+                mainContent
+                    .transition(.opacity.combined(with: .scale(scale: 1.05)))
+            }
         }
-        .padding()
+        .animation(.spring(response: 0.6, dampingFraction: 0.8), value: viewModel.showingOnboarding)
+    }
+
+    private var mainContent: some View {
+        NavigationStack {
+            ZStack {
+                // Main content - full screen
+                if scans.isEmpty {
+                    EmptyStateView()
+                } else {
+                    scanListView
+                }
+
+                // Floating scan button at bottom
+                VStack {
+                    Spacer()
+                    ScanButton {
+                        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                            viewModel.showingImagePicker = true
+                        }
+                    }
+                    .padding(.bottom, 30)
+                }
+
+                if viewModel.isScanning {
+                    ScanningView(image: viewModel.selectedImage)
+                        .transition(.opacity.combined(with: .scale(scale: 0.95)))
+                }
+
+                if viewModel.showingImagePicker {
+                    imagePickerOverlay
+                }
+            }
+            .animation(.spring(response: 0.4, dampingFraction: 0.8), value: viewModel.isScanning)
+            .animation(.spring(response: 0.4, dampingFraction: 0.8), value: viewModel.showingImagePicker)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .principal) {
+                    HStack(spacing: 8) {
+                        Image("App Icon Black")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 28, height: 28)
+                        Text("SkySniffer")
+                            .font(.system(size: 17, weight: .semibold, design: .rounded))
+                    }
+                    .frame(height: 44)
+                }
+            }
+            .fullScreenCover(isPresented: Binding(
+                get: { viewModel.showingCamera },
+                set: { viewModel.showingCamera = $0 }
+            )) {
+                CustomCameraView(
+                    image: Binding(
+                        get: { viewModel.selectedImage },
+                        set: { viewModel.selectedImage = $0 }
+                    ),
+                    isPresented: Binding(
+                        get: { viewModel.showingCamera },
+                        set: { viewModel.showingCamera = $0 }
+                    )
+                )
+            }
+            .photosPicker(
+                isPresented: Binding(
+                    get: { viewModel.showingPhotosPicker },
+                    set: { viewModel.showingPhotosPicker = $0 }
+                ),
+                selection: Binding(
+                    get: { viewModel.selectedPhotoItem },
+                    set: { viewModel.selectedPhotoItem = $0 }
+                ),
+                matching: .images
+            )
+            .onChange(of: viewModel.selectedPhotoItem) { _, _ in
+                viewModel.handlePhotoSelection()
+            }
+            .sheet(isPresented: Binding(
+                get: { viewModel.showingResult },
+                set: { viewModel.showingResult = $0 }
+            )) {
+                if let result = viewModel.currentResult, let image = viewModel.selectedImage {
+                    ResultView(result: result, image: image) {
+                        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                            viewModel.showingResult = false
+                        }
+                        Task {
+                            try? await Task.sleep(nanoseconds: 300_000_000) // 0.3 seconds
+                            await MainActor.run {
+                                viewModel.saveResult()
+                            }
+                        }
+                    }
+                    .presentationDragIndicator(.visible)
+                }
+            }
+            .onChange(of: viewModel.selectedImage) { _, newValue in
+                if let image = newValue {
+                    viewModel.performScan(image: image)
+                }
+            }
+            .onAppear {
+                viewModel.setModelContext(modelContext)
+            }
+            .alert("Error", isPresented: $viewModel.showingError) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text(viewModel.errorMessage ?? "An unknown error occurred")
+            }
+        }
+    }
+
+    private var scanListView: some View {
+        List {
+            ForEach(scans) { scan in
+                NavigationLink {
+                    if let imageData = scan.imageData,
+                       let image = UIImage(data: imageData) {
+                        SavedScanDetailView(scan: scan, image: image)
+                    }
+                } label: {
+                    ScanRowView(scan: scan)
+                }
+            }
+            .onDelete { offsets in
+                viewModel.deleteScans(at: offsets, from: scans)
+            }
+
+            // Add bottom padding to prevent list items from being hidden behind button
+            Color.clear
+                .frame(height: 100)
+                .listRowBackground(Color.clear)
+        }
+        .listStyle(.insetGrouped)
+    }
+
+    private var imagePickerOverlay: some View {
+        ZStack {
+            Color.black.opacity(0.3)
+                .ignoresSafeArea()
+                .onTapGesture {
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                        viewModel.showingImagePicker = false
+                    }
+                }
+                .transition(.opacity)
+
+            VStack {
+                Spacer()
+                ImageSourcePicker {
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                        viewModel.showingImagePicker = false
+                    }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        viewModel.showingCamera = true
+                    }
+                } onChooseLibrary: {
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                        viewModel.showingImagePicker = false
+                    }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        viewModel.showingPhotosPicker = true
+                    }
+                }
+                .padding(.bottom, 150)
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+        }
+    }
+}
+
+// Helper view for displaying saved scan details with proper dismiss
+struct SavedScanDetailView: View {
+    @Environment(\.dismiss) private var dismiss
+    let scan: ScanResult
+    let image: UIImage
+
+    var body: some View {
+        ResultView(
+            result: scan.asDetectionResult,
+            image: image,
+            onDone: {
+                dismiss()
+            }
+        )
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 
 #Preview {
     ContentView()
+        .modelContainer(for: ScanResult.self, inMemory: true)
 }

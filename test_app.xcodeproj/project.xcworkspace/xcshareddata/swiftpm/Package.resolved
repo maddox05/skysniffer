@@ -1,0 +1,33 @@
+{
+  "originHash" : "3fd3cfd001fb9c4aa26260aa11a35b85e5d6f8fdd1528cf2545b5358fdf46b8d",
+  "pins" : [
+    {
+      "identity" : "aiproxyswift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/lzell/AIProxySwift",
+      "state" : {
+        "revision" : "810d4eb1efe71010ae8ccfd2e7f87812ad9355c7",
+        "version" : "0.134.0"
+      }
+    },
+    {
+      "identity" : "superscript-ios",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/superwall/Superscript-iOS",
+      "state" : {
+        "revision" : "bde42f1c7652a69a469677978ed97cba92c4dd2c",
+        "version" : "1.0.10"
+      }
+    },
+    {
+      "identity" : "superwall-ios",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/superwall/Superwall-iOS",
+      "state" : {
+        "revision" : "886c35c556bdac8f8fda6c765239aa908c16e4e5",
+        "version" : "4.10.6"
+      }
+    }
+  ],
+  "version" : 3
+}
