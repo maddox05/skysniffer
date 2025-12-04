@@ -13,6 +13,8 @@ struct CustomCameraView: View {
     @Binding var image: UIImage?
     @Binding var isPresented: Bool
     @StateObject private var camera = CameraModel()
+    @State private var instructionOpacity: Double = 1.0
+    @State private var showingPermissionAlert = false
 
     var body: some View {
         GeometryReader { geometry in
@@ -77,6 +79,7 @@ struct CustomCameraView: View {
                         .padding(.vertical, 10)
                         .background(Color.black.opacity(0.6))
                         .cornerRadius(10)
+                        .opacity(instructionOpacity)
 
                     Spacer(minLength: 20)
 
@@ -85,8 +88,14 @@ struct CustomCameraView: View {
                         camera.capturePhoto()
                     } label: {
                         ZStack {
+                            // Dark shadow circle for visibility
                             Circle()
-                                .stroke(Color.white, lineWidth: 4)
+                                .fill(Color.black.opacity(0.3))
+                                .frame(width: 90, height: 90)
+                                .blur(radius: 8)
+
+                            Circle()
+                                .stroke(Color.white, lineWidth: 5)
                                 .frame(width: 80, height: 80)
 
                             Circle()
@@ -100,6 +109,13 @@ struct CustomCameraView: View {
         }
         .onAppear {
             camera.checkPermissions()
+
+            // Fade out instruction after 3 seconds
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                withAnimation(.easeOut(duration: 1.0)) {
+                    instructionOpacity = 0
+                }
+            }
         }
         .onChange(of: camera.capturedImage) { oldValue, newValue in
             if let capturedImage = newValue {
@@ -109,12 +125,31 @@ struct CustomCameraView: View {
                 }
             }
         }
+        .onChange(of: camera.permissionDenied) { oldValue, newValue in
+            if newValue {
+                showingPermissionAlert = true
+            }
+        }
+        .alert("Camera Access Required", isPresented: $showingPermissionAlert) {
+            Button("Cancel", role: .cancel) {
+                isPresented = false
+            }
+            Button("Open Settings") {
+                if let settingsURL = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(settingsURL)
+                }
+                isPresented = false
+            }
+        } message: {
+            Text("SkySniffer needs camera access to photograph the sky. Please enable camera access in Settings.")
+        }
     }
 }
 
 class CameraModel: NSObject, ObservableObject, AVCapturePhotoCaptureDelegate {
     @Published var capturedImage: UIImage?
     @Published var isCameraAuthorized = false
+    @Published var permissionDenied = false
     @Published var session = AVCaptureSession()
     @Published var preview: AVCaptureVideoPreviewLayer?
     @Published var output = AVCapturePhotoOutput()
@@ -124,17 +159,27 @@ class CameraModel: NSObject, ObservableObject, AVCapturePhotoCaptureDelegate {
     func checkPermissions() {
         switch AVCaptureDevice.authorizationStatus(for: .video) {
         case .authorized:
+            print("✅ Camera authorized")
             setUp()
         case .notDetermined:
+            print("❓ Camera permission not determined, requesting...")
             AVCaptureDevice.requestAccess(for: .video) { status in
+                print("📹 Camera permission response: \(status)")
                 if status {
                     DispatchQueue.main.async {
                         self.setUp()
                     }
+                } else {
+                    DispatchQueue.main.async {
+                        self.permissionDenied = true
+                    }
                 }
             }
         case .denied, .restricted:
-            break
+            print("❌ Camera permission denied or restricted")
+            DispatchQueue.main.async {
+                self.permissionDenied = true
+            }
         @unknown default:
             break
         }
@@ -142,29 +187,37 @@ class CameraModel: NSObject, ObservableObject, AVCapturePhotoCaptureDelegate {
 
     func setUp() {
         do {
+            print("🎥 Setting up camera...")
             session.beginConfiguration()
 
             guard let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: currentCameraPosition) else {
+                print("❌ No camera device found")
                 return
             }
+
+            print("📷 Camera device found: \(device.localizedName)")
 
             let input = try AVCaptureDeviceInput(device: device)
 
             if session.canAddInput(input) {
                 session.addInput(input)
+                print("✅ Camera input added")
             }
 
             if session.canAddOutput(output) {
                 session.addOutput(output)
+                print("✅ Camera output added")
             }
 
             session.commitConfiguration()
 
             DispatchQueue.global(qos: .background).async {
+                print("▶️ Starting camera session...")
                 self.session.startRunning()
+                print("✅ Camera session running: \(self.session.isRunning)")
             }
         } catch {
-            print("Error setting up camera: \(error.localizedDescription)")
+            print("❌ Error setting up camera: \(error.localizedDescription)")
         }
     }
 

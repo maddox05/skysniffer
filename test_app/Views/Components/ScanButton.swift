@@ -35,6 +35,8 @@ struct ScanButton: View {
                 .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isPressed)
         }
         .buttonStyle(PlainButtonStyle())
+        .accessibilityLabel("Scan Sky")
+        .accessibilityHint("Take or choose a photo to analyze contrail patterns")
     }
 }
 

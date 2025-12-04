@@ -13,6 +13,8 @@ struct OnboardingView: View {
     @State private var player: AVPlayer?
     @State private var videoOpacity: Double = 0
     @State private var videoOffset: CGFloat = 30
+    @State private var videoScale: CGFloat = 0.7
+    @State private var videoRotation: Double = -15
     @State private var titleOpacity: Double = 0
     @State private var disclaimerOpacity: Double = 0
     @State private var buttonOpacity: Double = 0
@@ -21,78 +23,73 @@ struct OnboardingView: View {
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                Color.white
+                Color(.systemBackground)
                     .ignoresSafeArea()
 
                 VStack(spacing: 0) {
                     ScrollView {
                         VStack(spacing: 0) {
-                            // Logo at top
-                            AppLogo(iconSize: 40, fontSize: 32)
-                                .padding(.top, max(geometry.safeAreaInsets.top + 20, 30))
-                                .padding(.bottom, 20)
+                            // Top padding
+                            Color.clear.frame(height: 20)
 
                             // Video player (no phone frame - video has it)
                             if let player = player {
                                 VideoPlayer(player: player)
-                                    .frame(width: min(geometry.size.width * 0.75, 300),
-                                           height: min(geometry.size.height * 0.45, 400))
-                                    .clipShape(RoundedRectangle(cornerRadius: 20))
-                                    .shadow(color: .black.opacity(0.12), radius: 20, x: 0, y: 8)
+                                    .aspectRatio(1206/2622, contentMode: .fit)
+                                    .frame(width: min(geometry.size.width * 0.65, 300))
+                                    .clipShape(RoundedRectangle(cornerRadius: 18))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 18)
+                                            .strokeBorder(Color.gray.opacity(0.6), lineWidth: 2.5)
+                                    )
+                                    .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 8)
+                                    .scaleEffect(videoScale)
+                                    .rotation3DEffect(
+                                        .degrees(videoRotation),
+                                        axis: (x: 1, y: 0, z: 0),
+                                        perspective: 0.5
+                                    )
                                     .opacity(videoOpacity)
                                     .offset(y: videoOffset)
                             } else {
-                                RoundedRectangle(cornerRadius: 20)
+                                RoundedRectangle(cornerRadius: 18)
                                     .fill(Color(.systemGray6))
-                                    .frame(width: min(geometry.size.width * 0.75, 300),
-                                           height: min(geometry.size.height * 0.45, 400))
+                                    .aspectRatio(1206/2622, contentMode: .fit)
+                                    .frame(width: min(geometry.size.width * 0.65, 300))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 18)
+                                            .strokeBorder(Color.gray.opacity(0.6), lineWidth: 2.5)
+                                    )
                             }
 
-                            // Spacer equivalent
-                            Color.clear.frame(height: 40)
-
-                            // Title
-                            VStack(spacing: 12) {
-                                Text("SkySniffer")
-                                    .font(.system(size: 36, weight: .bold, design: .rounded))
-                                    .foregroundColor(.primary)
-
-                                Text("AI-Powered Contrail Analysis")
-                                    .font(.system(size: 16, weight: .medium, design: .rounded))
-                                    .foregroundColor(.secondary)
-                            }
-                            .padding(.horizontal, 20)
-                            .opacity(titleOpacity)
-
-                            // Disclaimer
-                            VStack(spacing: 8) {
-                                Text("Educational & Entertainment Use")
-                                    .font(.system(size: 13, weight: .semibold, design: .rounded))
-                                    .foregroundColor(.orange)
-
-                                Text("This app provides AI-powered analysis of atmospheric patterns. Results are for informational purposes and should not be considered definitive scientific conclusions.")
-                                    .font(.system(size: 12, weight: .regular, design: .rounded))
-                                    .foregroundColor(.secondary)
-                                    .multilineTextAlignment(.center)
-                                    .lineSpacing(3)
-                            }
-                            .padding(.horizontal, 32)
-                            .padding(.vertical, 16)
-                            .background(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(Color.orange.opacity(0.08))
-                            )
-                            .padding(.horizontal, 20)
-                            .padding(.top, 24)
-                            .opacity(disclaimerOpacity)
-
-                            // Bottom spacing
-                            Color.clear.frame(height: 40)
                         }
                     }
 
                     // Sticky button at bottom
                     VStack(spacing: 0) {
+                        // Title
+                        VStack(spacing: 8) {
+                            Text("SkySniffer")
+                                .font(.system(size: 36, weight: .bold, design: .rounded))
+                                .foregroundColor(.primary)
+
+                            Text("AI-Powered Contrail Analysis")
+                                .font(.system(size: 16, weight: .medium, design: .rounded))
+                                .foregroundColor(.secondary)
+                        }
+                        .padding(.top, 20)
+                        .padding(.bottom, 8)
+                        .opacity(titleOpacity)
+
+                        // Educational disclaimer - REQUIRED for App Store
+                        Text("AI-generated results are not scientific facts")
+                            .font(.system(size: 13, weight: .medium, design: .rounded))
+                            .foregroundColor(.secondary)
+                            .padding(.horizontal, 32)
+                            .padding(.bottom, 16)
+                            .multilineTextAlignment(.center)
+                            .opacity(disclaimerOpacity)
+
                         Button {
                             onComplete()
                         } label: {
@@ -115,6 +112,8 @@ struct OnboardingView: View {
                             .clipShape(RoundedRectangle(cornerRadius: 14))
                             .shadow(color: .blue.opacity(0.3), radius: 12, x: 0, y: 6)
                         }
+                        .accessibilityLabel("Get Started")
+                        .accessibilityHint("Begin using SkySniffer to analyze contrail patterns")
                         .padding(.horizontal, 24)
                         .padding(.bottom, max(geometry.safeAreaInsets.bottom + 20, 30))
                         .background(Color(.systemBackground))
@@ -126,13 +125,15 @@ struct OnboardingView: View {
         .onAppear {
             setupVideo()
 
-            // Staggered animations for a polished entrance
-            withAnimation(.spring(response: 0.8, dampingFraction: 0.75)) {
+            // Phone pickup animation - starts tilted and small, then lifts up
+            withAnimation(.spring(response: 0.9, dampingFraction: 0.75)) {
                 videoOpacity = 1
                 videoOffset = 0
+                videoScale = 1.0
+                videoRotation = 0
             }
 
-            withAnimation(.spring(response: 0.6, dampingFraction: 0.8).delay(0.2)) {
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.8).delay(0.3)) {
                 titleOpacity = 1
             }
 
@@ -140,7 +141,7 @@ struct OnboardingView: View {
                 disclaimerOpacity = 1
             }
 
-            withAnimation(.spring(response: 0.6, dampingFraction: 0.8).delay(0.6)) {
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.8).delay(0.5)) {
                 buttonOpacity = 1
             }
 

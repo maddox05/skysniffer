@@ -43,12 +43,32 @@ class ScanViewModel {
         Task {
             do {
                 let result = try await ChemTrailDetectionService.analyzeImage(image)
+
+                // Success haptic
+                let notification = UINotificationFeedbackGenerator()
+                notification.notificationOccurred(.success)
+
                 currentResult = result
                 isScanning = false
                 showingResult = true
             } catch {
+                // Error haptic
+                let notification = UINotificationFeedbackGenerator()
+                notification.notificationOccurred(.error)
+
                 isScanning = false
-                errorMessage = "Analysis failed: \(error.localizedDescription)"
+
+                // Provide user-friendly error messages
+                if let aiError = error as? AIProxyError {
+                    errorMessage = aiError.localizedDescription
+                } else if (error as NSError).code == NSURLErrorNotConnectedToInternet {
+                    errorMessage = "No internet connection. Please check your network and try again."
+                } else if (error as NSError).code == NSURLErrorTimedOut {
+                    errorMessage = "Request timed out. Please try again."
+                } else {
+                    errorMessage = "Unable to analyze image. Please try again."
+                }
+
                 showingError = true
                 selectedImage = nil
                 print("Error during scan: \(error)")

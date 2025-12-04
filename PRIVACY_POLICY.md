@@ -81,10 +81,8 @@ SkySniffer provides AI-powered analysis for educational and informational purpos
 ## Contact Information
 
 For privacy questions or concerns:
-- **Email:** [YOUR EMAIL HERE - REQUIRED FOR APP STORE]
-- **Support:** [YOUR SUPPORT URL - can be email or website]
-
-**⚠️ BEFORE SUBMITTING:** Replace the bracketed placeholders with your actual contact information!
+- **Email:** schmidlkoferbusiness@gmail.com
+- **Support:** https://github.com/maddox05/skysniffer/issues
 
 ## Data Deletion
 

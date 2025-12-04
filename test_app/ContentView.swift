@@ -12,15 +12,18 @@ import SuperwallKit
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.colorScheme) private var colorScheme
     @Query(sort: \ScanResult.timestamp, order: .reverse) private var scans: [ScanResult]
     @State private var viewModel = ScanViewModel()
+    @State private var showingSettings = false
 
     var body: some View {
         ZStack {
             if viewModel.showingOnboarding {
                 OnboardingView {
+                    // TODO: Re-enable Superwall when ready
                     // Register the paywall placement
-                    Superwall.shared.register(placement: "campaign_trigger")
+                    // Superwall.shared.register(placement: "campaign_trigger")
 
                     // Complete onboarding after paywall is dismissed
                     withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
@@ -72,7 +75,7 @@ struct ContentView: View {
             .toolbar {
                 ToolbarItem(placement: .principal) {
                     HStack(spacing: 8) {
-                        Image("App Icon Black")
+                        Image(colorScheme == .dark ? "App Icon White" : "App Icon Black")
                             .resizable()
                             .scaledToFit()
                             .frame(width: 28, height: 28)
@@ -81,6 +84,23 @@ struct ContentView: View {
                     }
                     .frame(height: 44)
                 }
+
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        let impact = UIImpactFeedbackGenerator(style: .light)
+                        impact.impactOccurred()
+                        showingSettings = true
+                    } label: {
+                        Image(systemName: "gearshape.fill")
+                            .font(.system(size: 17))
+                            .foregroundColor(.blue)
+                    }
+                    .accessibilityLabel("Settings")
+                    .accessibilityHint("Open app settings and information")
+                }
+            }
+            .sheet(isPresented: $showingSettings) {
+                SettingsView()
             }
             .fullScreenCover(isPresented: Binding(
                 get: { viewModel.showingCamera },
@@ -138,10 +158,19 @@ struct ContentView: View {
             .onAppear {
                 viewModel.setModelContext(modelContext)
             }
-            .alert("Error", isPresented: $viewModel.showingError) {
-                Button("OK", role: .cancel) { }
+            .alert("Unable to Analyze", isPresented: $viewModel.showingError) {
+                Button("OK", role: .cancel) {
+                    viewModel.errorMessage = nil
+                }
+                if viewModel.selectedImage != nil {
+                    Button("Try Again") {
+                        if let image = viewModel.selectedImage {
+                            viewModel.performScan(image: image)
+                        }
+                    }
+                }
             } message: {
-                Text(viewModel.errorMessage ?? "An unknown error occurred")
+                Text(viewModel.errorMessage ?? "An unexpected error occurred. Please try again.")
             }
         }
     }
@@ -157,9 +186,19 @@ struct ContentView: View {
                 } label: {
                     ScanRowView(scan: scan)
                 }
+                .transition(.asymmetric(
+                    insertion: .move(edge: .trailing).combined(with: .opacity),
+                    removal: .move(edge: .leading).combined(with: .opacity)
+                ))
             }
             .onDelete { offsets in
-                viewModel.deleteScans(at: offsets, from: scans)
+                // Haptic feedback on delete
+                let impact = UIImpactFeedbackGenerator(style: .medium)
+                impact.impactOccurred()
+
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                    viewModel.deleteScans(at: offsets, from: scans)
+                }
             }
 
             // Add bottom padding to prevent list items from being hidden behind button
@@ -168,6 +207,14 @@ struct ContentView: View {
                 .listRowBackground(Color.clear)
         }
         .listStyle(.insetGrouped)
+        .refreshable {
+            // Haptic feedback on refresh
+            let impact = UIImpactFeedbackGenerator(style: .light)
+            impact.impactOccurred()
+
+            // Small delay to show refresh animation
+            try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+        }
     }
 
     private var imagePickerOverlay: some View {
@@ -184,19 +231,11 @@ struct ContentView: View {
             VStack {
                 Spacer()
                 ImageSourcePicker {
-                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                        viewModel.showingImagePicker = false
-                    }
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                        viewModel.showingCamera = true
-                    }
+                    viewModel.showingImagePicker = false
+                    viewModel.showingCamera = true
                 } onChooseLibrary: {
-                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                        viewModel.showingImagePicker = false
-                    }
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                        viewModel.showingPhotosPicker = true
-                    }
+                    viewModel.showingImagePicker = false
+                    viewModel.showingPhotosPicker = true
                 }
                 .padding(.bottom, 150)
                 .transition(.move(edge: .bottom).combined(with: .opacity))
@@ -223,7 +262,4 @@ struct SavedScanDetailView: View {
     }
 }
 
-#Preview {
-    ContentView()
-        .modelContainer(for: ScanResult.self, inMemory: true)
-}
+

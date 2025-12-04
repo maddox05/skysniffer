@@ -3,8 +3,8 @@
 ## ✅ Pre-Submission Checklist
 
 ### 1. App Assets & Icons
-- [ ] **App Icon (1024x1024)** - Must be PNG format (currently JPG ⚠️)
-  - Action: Convert `imag.jpg` to PNG in Xcode
+- [x] **App Icon (1024x1024)** - PNG format ✅
+  - File: `imag.png` (1024x1024)
   - No transparency or rounded corners
   - Should look good on white AND black backgrounds
 
@@ -20,7 +20,7 @@
 
 ### 2. Privacy & Legal
 - [x] **Privacy Policy** - Created in `PRIVACY_POLICY.md`
-  - [ ] Host on GitHub Pages or website (get URL)
+  - [x] Host on GitHub Pages: https://maddox05.github.io/skysniffer/privacy.html
   - [ ] Add URL to App Store Connect
 
 - [x] **Usage Descriptions** in Info.plist
@@ -30,9 +30,9 @@
 - [x] **Disclaimer** in onboarding
   - [x] "Educational & Entertainment Use" added
 
-- [ ] **Support URL** (Required for App Store)
-  - Can be: your website, email, or GitHub repo
-  - Example: `mailto:youremail@example.com`
+- [x] **Support URL** (Required for App Store)
+  - URL: https://github.com/maddox05/skysniffer/issues
+  - Email: schmidlkoferbusiness@gmail.com
 
 ### 3. App Information
 
@@ -45,34 +45,43 @@ Age Rating: 4+ (No objectionable content)
 
 Description (max 4000 chars):
 ---
-SkySniffer uses advanced AI to analyze contrail patterns and
-atmospheric conditions in your sky photos.
+SkySniffer is an educational tool that uses advanced AI to help you
+learn about contrail formation, persistence patterns, and atmospheric
+conditions through analysis of your sky photos.
 
-FEATURES:
-• AI-powered image analysis using GPT-4 Vision
-• Detailed pattern detection and atmospheric analysis
-• Scan history with confidence scores
-• Beautiful, modern interface
-• All data stored securely on your device
+EDUCATIONAL FEATURES:
+• AI-powered analysis using GPT-4 Vision technology
+• Learn about contrail persistence and formation types
+• Understand atmospheric conditions affecting vapor trails
+• Pattern detection with scientific explanations
+• Track observations with detailed scan history
+• Beautiful, intuitive interface
 
-EDUCATIONAL USE:
-This app provides educational information about atmospheric
-phenomena for learning and entertainment purposes. Results
-should not be considered definitive scientific conclusions.
+PERFECT FOR:
+• Aviation enthusiasts and students
+• Weather watchers and sky observers
+• Anyone curious about atmospheric science
+• Educational purposes and learning
 
 HOW IT WORKS:
 1. Take a photo of the sky or choose from your library
-2. AI analyzes contrail patterns and formations
-3. View detailed results and save to your history
-4. Review past scans anytime
+2. AI analyzes contrail patterns, persistence, and atmospheric conditions
+3. Learn from detailed scientific explanations
+4. Save observations to review and compare later
 
-PRIVACY:
-• Photos stored locally on your device only
-• No tracking or ads
-• Your privacy is our priority
+SCIENTIFIC APPROACH:
+SkySniffer provides educational analysis of contrail persistence
+levels, formation patterns, and atmospheric phenomena. All analysis
+is powered by AI and designed for learning about aviation weather
+and atmospheric science.
 
-Perfect for aviation enthusiasts, weather watchers, and
-anyone curious about what's happening in the sky above!
+PRIVACY & SECURITY:
+• All photos stored locally on your device
+• No tracking, no ads, no data collection
+• Your privacy is our top priority
+
+Discover the science of contrails and expand your knowledge of
+atmospheric phenomena with SkySniffer!
 ---
 
 Keywords (max 100 chars, comma-separated):
@@ -171,7 +180,7 @@ contrail analysis. Educational and easy to use!
   Data Not Collected:
   - Location, Contacts, Identifiers, Usage Data, etc.
 
-  Privacy Policy URL: [YOUR GITHUB PAGES URL]
+  Privacy Policy URL: https://maddox05.github.io/skysniffer/privacy.html
   ```
 
 ### 8. Pricing & Availability

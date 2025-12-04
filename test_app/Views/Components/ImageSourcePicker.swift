@@ -22,8 +22,8 @@ struct ImageSourcePicker: View {
                 cameraPressed = true
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                     cameraPressed = false
+                    onTakePhoto()
                 }
-                onTakePhoto()
             } label: {
                 HStack(spacing: 12) {
                     Image(systemName: "camera.fill")
@@ -46,6 +46,8 @@ struct ImageSourcePicker: View {
                 .scaleEffect(cameraPressed ? 0.96 : 1.0)
             }
             .buttonStyle(PlainButtonStyle())
+            .accessibilityLabel("Take Photo")
+            .accessibilityHint("Opens camera to photograph the sky")
 
             // Choose Library button
             Button {
@@ -54,8 +56,8 @@ struct ImageSourcePicker: View {
                 libraryPressed = true
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                     libraryPressed = false
+                    onChooseLibrary()
                 }
-                onChooseLibrary()
             } label: {
                 HStack(spacing: 12) {
                     Image(systemName: "photo.on.rectangle")
@@ -78,6 +80,8 @@ struct ImageSourcePicker: View {
                 .scaleEffect(libraryPressed ? 0.96 : 1.0)
             }
             .buttonStyle(PlainButtonStyle())
+            .accessibilityLabel("Choose from Library")
+            .accessibilityHint("Select an existing photo from your photo library")
         }
         .padding(.horizontal, 40)
         .animation(.spring(response: 0.3, dampingFraction: 0.6), value: cameraPressed)

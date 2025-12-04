@@ -68,19 +68,19 @@ struct ResultView: View {
                             // Main status card
                             VStack(spacing: 16) {
                                 HStack(spacing: 8) {
-                                    Image(systemName: result.isChemTrail ? "exclamationmark.triangle.fill" : "checkmark.circle.fill")
+                                    Image(systemName: detectionIcon)
                                         .font(.system(size: 24))
-                                        .foregroundColor(result.isChemTrail ? .red : .green)
+                                        .foregroundColor(detectionColor)
 
-                                    Text(result.isChemTrail ? "Chemtrail Detected" : "Normal Contrail")
+                                    Text(detectionMessage)
                                         .font(.system(size: 24, weight: .bold, design: .rounded))
-                                        .foregroundColor(result.isChemTrail ? .red : .green)
+                                        .foregroundColor(detectionColor)
 
                                     Spacer()
                                 }
 
                                 HStack {
-                                    Text("Risk Level")
+                                    Text("Persistence Level")
                                         .font(.system(size: 14, weight: .medium, design: .rounded))
                                         .foregroundColor(.secondary)
 
@@ -90,7 +90,7 @@ struct ResultView: View {
                                         .font(.system(size: 14, weight: .bold, design: .rounded))
                                         .padding(.horizontal, 12)
                                         .padding(.vertical, 6)
-                                        .background(riskLevelColor)
+                                        .background(persistenceLevelColor)
                                         .foregroundColor(.white)
                                         .clipShape(Capsule())
                                 }
@@ -98,11 +98,11 @@ struct ResultView: View {
                             .padding(20)
                             .background(
                                 RoundedRectangle(cornerRadius: 16)
-                                    .fill(result.isChemTrail ? Color.red.opacity(0.05) : Color.green.opacity(0.05))
+                                    .fill(detectionColor.opacity(0.05))
                             )
                             .overlay(
                                 RoundedRectangle(cornerRadius: 16)
-                                    .strokeBorder(result.isChemTrail ? Color.red.opacity(0.2) : Color.green.opacity(0.2), lineWidth: 1)
+                                    .strokeBorder(detectionColor.opacity(0.2), lineWidth: 1)
                             )
                             .padding(.horizontal, 20)
                             .opacity(statusCardOpacity)
@@ -216,7 +216,52 @@ struct ResultView: View {
         }
     }
 
-    private var riskLevelColor: Color {
+    private var persistenceLevelColor: Color {
+        switch result.riskLevel.lowercased() {
+        case "low":
+            return .green
+        case "medium":
+            return .blue
+        case "high":
+            return .indigo
+        case "critical":
+            return .purple
+        default:
+            return .gray
+        }
+    }
+
+    private var detectionMessage: String {
+        switch result.riskLevel.lowercased() {
+        case "low":
+            return "Normal Contrails"
+        case "medium":
+            return "Unusual Contrails Detected"
+        case "high":
+            return "Highly Unusual Contrails"
+        case "critical":
+            return "Possible Chemtrail Detected"
+        default:
+            return "Normal Contrails"
+        }
+    }
+
+    private var detectionIcon: String {
+        switch result.riskLevel.lowercased() {
+        case "low":
+            return "checkmark.circle.fill"
+        case "medium":
+            return "exclamationmark.circle.fill"
+        case "high":
+            return "exclamationmark.triangle.fill"
+        case "critical":
+            return "exclamationmark.triangle.fill"
+        default:
+            return "checkmark.circle.fill"
+        }
+    }
+
+    private var detectionColor: Color {
         switch result.riskLevel.lowercased() {
         case "low":
             return .green
@@ -225,9 +270,9 @@ struct ResultView: View {
         case "high":
             return .red
         case "critical":
-            return Color(red: 0.7, green: 0, blue: 0)
+            return Color(red: 0.7, green: 0, blue: 0) // Dark red
         default:
-            return .gray
+            return .green
         }
     }
 }
