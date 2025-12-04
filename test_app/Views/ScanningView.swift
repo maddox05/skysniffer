@@ -83,13 +83,9 @@ struct ScanningView: View {
                             .tint(.blue)
                     }
 
-                    Text("Analyzing Image")
+                    Text("Analyzing Contrails")
                         .font(.system(size: 20, weight: .semibold, design: .rounded))
                         .foregroundColor(.primary)
-
-                    Text("Please wait...")
-                        .font(.system(size: 14, weight: .regular, design: .rounded))
-                        .foregroundColor(.secondary)
                 }
                 .opacity(opacity)
 

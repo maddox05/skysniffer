@@ -8,7 +8,7 @@ The following files have been created for the SkySniffer app:
 - `test_app/Models/ScanResult.swift` - SwiftData model for storing scan results
 
 ### Services
-- `test_app/Services/ChemTrailDetectionService.swift` - Chemtrail detection service
+- `test_app/Services/ContrailAnalysisService.swift` - Contrail analysis service
 - `test_app/Services/AIProxyService.swift` - AIProxy integration for GPT-4o Vision API
 
 ### ViewModels
@@ -81,15 +81,15 @@ The app requires camera and photo library access. Add these to your project:
 The app uses GPT-4o Vision API via AIProxy for real-time image analysis:
 
 1. `AIProxyService.swift` handles the integration with OpenAI's API
-2. `ChemTrailDetectionService.swift` provides a clean interface for image analysis
+2. `ContrailAnalysisService.swift` provides a clean interface for image analysis
 3. The service returns a `DetectionResult` with:
    - `isValidImage: Bool` - Whether image contains sky/contrails
-   - `isChemTrail: Bool` - Detection result
-   - `explanation: String` - AI's detailed explanation
+   - `hasPersistentContrails: Bool` - Detection of persistent contrail patterns
+   - `explanation: String` - AI's detailed scientific explanation
    - `confidenceScore: Double` - Confidence level (0.0 to 1.0)
-   - `detectedPatterns: [String]` - Identified patterns
+   - `detectedPatterns: [String]` - Identified atmospheric patterns
    - `atmosphericConditions: String` - Weather/atmospheric analysis
-   - `riskLevel: String` - Risk assessment (Low/Medium/High/Critical)
+   - `persistenceLevel: String` - Persistence assessment (Low/Medium/High)
 
 ## Completed Features
 

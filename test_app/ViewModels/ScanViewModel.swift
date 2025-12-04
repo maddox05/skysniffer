@@ -42,7 +42,7 @@ class ScanViewModel {
 
         Task {
             do {
-                let result = try await ChemTrailDetectionService.analyzeImage(image)
+                let result = try await ContrailAnalysisService.analyzeImage(image)
 
                 // Success haptic
                 let notification = UINotificationFeedbackGenerator()
@@ -58,15 +58,30 @@ class ScanViewModel {
 
                 isScanning = false
 
-                // Provide user-friendly error messages
+                // Provide user-friendly, actionable error messages
                 if let aiError = error as? AIProxyError {
-                    errorMessage = aiError.localizedDescription
+                    switch aiError {
+                    case .imageConversionFailed:
+                        errorMessage = "Unable to process this image format. Try taking a new photo or selecting a different image."
+                    case .noResponse:
+                        errorMessage = "No response from AI service. Check your internet connection and try again."
+                    case .networkError:
+                        errorMessage = "Network connection lost. Make sure you're connected to the internet and try again."
+                    case .invalidResponse:
+                        errorMessage = "Received unexpected response from AI. This is usually temporary - please try again in a moment."
+                    case .rateLimitExceeded:
+                        errorMessage = "Too many requests at once. Please wait 10 seconds and try again."
+                    case .apiKeyInvalid:
+                        errorMessage = "Service configuration error. Please update the app or contact support."
+                    }
                 } else if (error as NSError).code == NSURLErrorNotConnectedToInternet {
-                    errorMessage = "No internet connection. Please check your network and try again."
+                    errorMessage = "No internet connection detected.\n\nPlease connect to Wi-Fi or cellular data and try again."
                 } else if (error as NSError).code == NSURLErrorTimedOut {
-                    errorMessage = "Request timed out. Please try again."
+                    errorMessage = "Analysis took too long and timed out.\n\nThis can happen with slow connections. Try again with a better connection."
+                } else if (error as NSError).code == NSURLErrorCannotConnectToHost {
+                    errorMessage = "Cannot reach AI service.\n\nCheck your internet connection and try again."
                 } else {
-                    errorMessage = "Unable to analyze image. Please try again."
+                    errorMessage = "Unable to analyze image.\n\nPlease try again. If the problem persists, try restarting the app."
                 }
 
                 showingError = true

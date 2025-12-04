@@ -39,11 +39,48 @@ struct EmptyStateView: View {
                 .foregroundColor(.primary)
                 .padding(.bottom, 8)
 
-            Text("Scan the sky to detect unusual\ncontrail patterns")
+            Text("Tap the camera button to get started")
                 .font(.system(size: 16, weight: .regular, design: .rounded))
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
-                .lineSpacing(4)
+
+            // Helpful tips
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(alignment: .top, spacing: 12) {
+                    Image(systemName: "camera.fill")
+                        .font(.system(size: 16))
+                        .foregroundColor(.blue)
+                        .frame(width: 24)
+
+                    Text("Take a photo of the sky showing contrails from aircraft")
+                        .font(.system(size: 14, weight: .regular, design: .rounded))
+                        .foregroundColor(.secondary)
+                }
+
+                HStack(alignment: .top, spacing: 12) {
+                    Image(systemName: "photo.fill")
+                        .font(.system(size: 16))
+                        .foregroundColor(.blue)
+                        .frame(width: 24)
+
+                    Text("Or select an existing photo from your library")
+                        .font(.system(size: 14, weight: .regular, design: .rounded))
+                        .foregroundColor(.secondary)
+                }
+
+                HStack(alignment: .top, spacing: 12) {
+                    Image(systemName: "brain.head.profile")
+                        .font(.system(size: 16))
+                        .foregroundColor(.blue)
+                        .frame(width: 24)
+
+                    Text("AI will analyze persistence patterns and climate impact")
+                        .font(.system(size: 14, weight: .regular, design: .rounded))
+                        .foregroundColor(.secondary)
+                }
+            }
+            .padding(.horizontal, 40)
+            .padding(.top, 32)
 
             Spacer()
         }

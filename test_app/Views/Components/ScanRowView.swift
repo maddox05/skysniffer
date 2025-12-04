@@ -10,6 +10,10 @@ import SwiftUI
 struct ScanRowView: View {
     let scan: ScanResult
 
+    private var persistenceHelper: PersistenceLevelHelper {
+        PersistenceLevelHelper(level: scan.persistenceLevel)
+    }
+
     var body: some View {
         HStack(spacing: 16) {
             // Thumbnail
@@ -49,22 +53,22 @@ struct ScanRowView: View {
                         .foregroundColor(.orange)
                     } else {
                         HStack(spacing: 4) {
-                            Image(systemName: detectionIcon(for: scan))
+                            Image(systemName: persistenceHelper.icon)
                                 .font(.system(size: 12))
-                            Text(detectionMessage(for: scan))
+                            Text(persistenceHelper.shortMessage)
                                 .font(.system(size: 15, weight: .semibold, design: .rounded))
                         }
-                        .foregroundColor(detectionColor(for: scan))
+                        .foregroundColor(persistenceHelper.color)
                     }
 
                     Spacer()
 
                     if scan.isValidImage {
-                        Text(scan.riskLevel)
+                        Text(scan.persistenceLevel)
                             .font(.system(size: 11, weight: .semibold, design: .rounded))
                             .padding(.horizontal, 8)
                             .padding(.vertical, 4)
-                            .background(riskLevelColor(for: scan.riskLevel))
+                            .background(persistenceHelper.color)
                             .foregroundColor(.white)
                             .clipShape(Capsule())
                     }
@@ -90,65 +94,5 @@ struct ScanRowView: View {
             }
         }
         .padding(.vertical, 8)
-    }
-
-    private func riskLevelColor(for level: String) -> Color {
-        switch level.lowercased() {
-        case "low":
-            return .green
-        case "medium":
-            return .orange
-        case "high":
-            return .red
-        case "critical":
-            return Color(red: 0.7, green: 0, blue: 0)
-        default:
-            return .gray
-        }
-    }
-
-    private func detectionMessage(for scan: ScanResult) -> String {
-        switch scan.riskLevel.lowercased() {
-        case "low":
-            return "Normal Contrails"
-        case "medium":
-            return "Unusual Contrails"
-        case "high":
-            return "Highly Unusual"
-        case "critical":
-            return "Possible Chemtrail"
-        default:
-            return "Normal Contrails"
-        }
-    }
-
-    private func detectionIcon(for scan: ScanResult) -> String {
-        switch scan.riskLevel.lowercased() {
-        case "low":
-            return "checkmark.circle.fill"
-        case "medium":
-            return "exclamationmark.circle.fill"
-        case "high":
-            return "exclamationmark.triangle.fill"
-        case "critical":
-            return "exclamationmark.triangle.fill"
-        default:
-            return "checkmark.circle.fill"
-        }
-    }
-
-    private func detectionColor(for scan: ScanResult) -> Color {
-        switch scan.riskLevel.lowercased() {
-        case "low":
-            return .green
-        case "medium":
-            return .orange
-        case "high":
-            return .red
-        case "critical":
-            return Color(red: 0.7, green: 0, blue: 0) // Dark red
-        default:
-            return .green
-        }
     }
 }

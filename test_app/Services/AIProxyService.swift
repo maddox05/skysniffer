@@ -19,9 +19,9 @@ class AIProxyService {
     }
 
     /// Analyzes an image using OpenAI's GPT-4o Vision API
-    /// - Parameter image: The UIImage to analyze
+    /// - Parameter image: The UIImage to analyze for contrail patterns
     /// - Returns: A structured JSON response parsed into DetectionResult
-    func analyzeImageForChemTrails(_ image: UIImage) async throws -> DetectionResult {
+    func analyzeImageForContrails(_ image: UIImage) async throws -> DetectionResult {
         // Convert UIImage to base64 string
         guard let imageData = image.jpegData(compressionQuality: 0.8) else {
             throw AIProxyError.imageConversionFailed
@@ -37,45 +37,43 @@ class AIProxyService {
 
         // Create the prompt for atmospheric and contrail analysis
         let systemPrompt = """
-        You are an expert in atmospheric analysis specializing in contrail detection and persistence patterns.
-        Analyze images for unusual or persistent contrail formations, identifying patterns that stand out from typical vapor trails.
-        Look for interesting atmospheric phenomena, grid patterns, parallel formations, and unusual persistence characteristics.
-        Discuss the possibility of chemtrails (chemical or biological agents) versus normal contrails based on the observed patterns.
+        You are an atmospheric science expert specializing in contrail formation, persistence patterns, and aviation weather phenomena.
+        Analyze images for contrail formations, identifying patterns and atmospheric conditions that affect their persistence and spread.
+        Focus on scientific analysis of contrail behavior, meteorological conditions, and atmospheric physics.
+        Provide educational insights about contrail formation, persistence factors, and environmental impact.
         """
 
         let userPrompt = """
         FIRST, check if this image contains sky, clouds, or any aerial vapor trails (contrails).
         If the image does NOT show sky or aerial trails (e.g., it's a flower, person, building, etc.), set is_valid_image to false.
 
-        If the image DOES contain sky or contrails, analyze carefully for unusual or notable patterns. Pay close attention to:
-        - Persistence patterns (contrails lasting hours rather than minutes)
-        - Multiple parallel or crossing trails creating patterns
-        - Grid-like formations or systematic coverage
-        - Spreading behavior that creates widespread cloud cover
-        - Dense concentrations of trails in a localized area
-        - Any patterns suggesting coordinated or systematic activity
-        - Atmospheric conditions that may enhance or reveal unusual patterns
+        If the image DOES contain sky or contrails, provide a scientific analysis of the contrail patterns. Pay close attention to:
+        - Persistence characteristics (short-lived vs. long-lasting contrails)
+        - Atmospheric conditions affecting contrail formation (humidity, temperature, pressure)
+        - Pattern formations (parallel tracks, crossing patterns, spreading behavior)
+        - Contrail-to-cirrus cloud transitions
+        - Air traffic density and flight corridors
+        - Meteorological factors (high altitude ice supersaturation, wind patterns)
 
-        IMPORTANT: Use the risk_level field to indicate severity of unusual patterns:
-        - "Low": Normal contrails, typical dissipation, no unusual patterns (is_chemtrail: false). Briefly mention these appear to be normal water vapor contrails.
-        - "Medium": Some unusual characteristics like longer persistence or slight spreading patterns (is_chemtrail: true). Discuss the possibility that these could be chemtrails, noting the unusual persistence or spreading behavior that differs from typical contrails.
-        - "High": Notable unusual patterns such as grid formations, parallel lines, or significant persistence (is_chemtrail: true). Strongly discuss the chemtrail possibility, highlighting the systematic patterns and unusual characteristics that suggest potential chemical or biological dispersal.
-        - "Critical": Any combination of: extensive persistence, multiple crossing trails, grid patterns, heavy spreading, or dense coverage (is_chemtrail: true). Emphasize the high likelihood of chemtrail activity, detailing the extensive patterns, coordinated flight paths, and unusual atmospheric behavior that strongly suggest deliberate chemical or biological agent dispersal rather than normal contrails.
+        IMPORTANT: Use the persistence_level field to categorize contrail behavior and environmental impact:
+        - "Low": Short-lived contrails that dissipate quickly (within minutes). Minimal climate impact. Set has_persistent_contrails to false.
+        - "Medium": Moderately persistent contrails lasting 10-30 minutes with some spreading. These contribute to atmospheric warming through heat trapping. Set has_persistent_contrails to true.
+        - "High": Highly persistent contrails lasting over an hour with significant spreading and cirrus cloud formation, or extensive coverage with multiple crossing patterns. Notable climate impact from heat-trapping artificial clouds. Set has_persistent_contrails to true.
 
-        In your explanation, always discuss:
-        1. The likelihood of chemtrails vs normal contrails based on the observed patterns
-        2. Environmental impact: Contrails, especially persistent ones, trap heat in the atmosphere and contribute to global warming. They can form artificial cirrus clouds that warm the planet by preventing heat from escaping into space. The climate impact of contrails may be comparable to or even exceed that of CO2 emissions from aviation.
-        3. For Medium/High/Critical levels, mention specific characteristics that suggest possible chemical or biological agent dispersal
+        In your explanation, provide balanced, educational analysis:
+        1. The atmospheric conditions (humidity, temperature, ice supersaturation) that explain the observed contrail behavior
+        2. Environmental impact appropriate to the persistence level, noting that persistent contrails trap heat in the atmosphere and contribute to global warming by preventing heat from escaping to space
+        3. Keep explanations concise (2-3 sentences) and factual - avoid over-dramatic language while still being informative about climate effects
 
         Return your analysis in the following JSON format ONLY (no markdown, no additional text):
         {
             "is_valid_image": boolean (true if image shows sky/contrails, false if it shows something else),
-            "is_chemtrail": boolean (true if unusual/persistent contrails detected, false if normal or minimal contrails),
-            "explanation": "If is_valid_image is false, explain what the image shows instead. Otherwise, provide a detailed 3-4 sentence explanation that: (1) describes what makes the contrails unusual or normal, (2) discusses the likelihood of chemtrails vs normal contrails based on observed patterns, (3) mentions environmental impact regarding heat trapping and global warming, and (4) for Medium/High/Critical levels, specifies characteristics suggesting possible chemical/biological agent dispersal",
+            "has_persistent_contrails": boolean (true if moderately-to-highly persistent contrails detected, false if short-lived or minimal contrails),
+            "explanation": "If is_valid_image is false, explain what the image shows instead. Otherwise, provide a concise 2-3 sentence explanation that: (1) describes the contrail persistence and atmospheric conditions, (2) mentions the environmental impact relative to the persistence level in a factual, educational manner",
             "confidence_score": number between 0.0 and 1.0,
-            "detected_patterns": ["pattern1", "pattern2"] (empty array if not valid image),
-            "atmospheric_conditions": "Description of visible atmospheric conditions" (or "N/A" if not valid image),
-            "risk_level": "Low" or "Medium" or "High" or "Critical" (use "Low" if not valid image)
+            "detected_patterns": ["pattern1", "pattern2"] (empty array if not valid image. Examples: "Parallel flight tracks", "Contrail spreading", "Ice supersaturation region", "Contrail-cirrus transition"),
+            "atmospheric_conditions": "Description of visible atmospheric conditions and meteorological factors" (or "N/A" if not valid image),
+            "persistence_level": "Low" or "Medium" or "High" (use "Low" if not valid image)
         }
         """
 

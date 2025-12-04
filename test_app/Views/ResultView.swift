@@ -16,6 +16,10 @@ struct ResultView: View {
     @State private var statsOpacity: Double = 0
     @State private var detailsOpacity: Double = 0
 
+    private var persistenceHelper: PersistenceLevelHelper {
+        PersistenceLevelHelper(level: result.persistenceLevel)
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             // Scrollable content
@@ -68,13 +72,13 @@ struct ResultView: View {
                             // Main status card
                             VStack(spacing: 16) {
                                 HStack(spacing: 8) {
-                                    Image(systemName: detectionIcon)
+                                    Image(systemName: persistenceHelper.icon)
                                         .font(.system(size: 24))
-                                        .foregroundColor(detectionColor)
+                                        .foregroundColor(persistenceHelper.color)
 
-                                    Text(detectionMessage)
+                                    Text(persistenceHelper.fullMessage)
                                         .font(.system(size: 24, weight: .bold, design: .rounded))
-                                        .foregroundColor(detectionColor)
+                                        .foregroundColor(persistenceHelper.color)
 
                                     Spacer()
                                 }
@@ -86,11 +90,11 @@ struct ResultView: View {
 
                                     Spacer()
 
-                                    Text(result.riskLevel)
+                                    Text(result.persistenceLevel)
                                         .font(.system(size: 14, weight: .bold, design: .rounded))
                                         .padding(.horizontal, 12)
                                         .padding(.vertical, 6)
-                                        .background(persistenceLevelColor)
+                                        .background(persistenceHelper.color)
                                         .foregroundColor(.white)
                                         .clipShape(Capsule())
                                 }
@@ -98,11 +102,11 @@ struct ResultView: View {
                             .padding(20)
                             .background(
                                 RoundedRectangle(cornerRadius: 16)
-                                    .fill(detectionColor.opacity(0.05))
+                                    .fill(persistenceHelper.color.opacity(0.05))
                             )
                             .overlay(
                                 RoundedRectangle(cornerRadius: 16)
-                                    .strokeBorder(detectionColor.opacity(0.2), lineWidth: 1)
+                                    .strokeBorder(persistenceHelper.color.opacity(0.2), lineWidth: 1)
                             )
                             .padding(.horizontal, 20)
                             .opacity(statusCardOpacity)
@@ -174,9 +178,9 @@ struct ResultView: View {
                     onDone()
                 } label: {
                     HStack(spacing: 8) {
-                        Text("Done")
+                        Text("Save")
                             .font(.system(size: 17, weight: .semibold, design: .rounded))
-                        Image(systemName: "checkmark.circle.fill")
+                        Image(systemName: "square.and.arrow.down.fill")
                             .font(.system(size: 16))
                     }
                     .frame(maxWidth: .infinity)
@@ -191,6 +195,8 @@ struct ResultView: View {
                     .foregroundColor(.white)
                     .clipShape(RoundedRectangle(cornerRadius: 14))
                 }
+                .accessibilityLabel("Save scan")
+                .accessibilityHint("Save this scan to your history")
                 .padding(.horizontal, 20)
                 .padding(.vertical, 16)
                 .background(Color(.systemBackground))
@@ -213,66 +219,6 @@ struct ResultView: View {
             withAnimation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.3)) {
                 detailsOpacity = 1
             }
-        }
-    }
-
-    private var persistenceLevelColor: Color {
-        switch result.riskLevel.lowercased() {
-        case "low":
-            return .green
-        case "medium":
-            return .blue
-        case "high":
-            return .indigo
-        case "critical":
-            return .purple
-        default:
-            return .gray
-        }
-    }
-
-    private var detectionMessage: String {
-        switch result.riskLevel.lowercased() {
-        case "low":
-            return "Normal Contrails"
-        case "medium":
-            return "Unusual Contrails Detected"
-        case "high":
-            return "Highly Unusual Contrails"
-        case "critical":
-            return "Possible Chemtrail Detected"
-        default:
-            return "Normal Contrails"
-        }
-    }
-
-    private var detectionIcon: String {
-        switch result.riskLevel.lowercased() {
-        case "low":
-            return "checkmark.circle.fill"
-        case "medium":
-            return "exclamationmark.circle.fill"
-        case "high":
-            return "exclamationmark.triangle.fill"
-        case "critical":
-            return "exclamationmark.triangle.fill"
-        default:
-            return "checkmark.circle.fill"
-        }
-    }
-
-    private var detectionColor: Color {
-        switch result.riskLevel.lowercased() {
-        case "low":
-            return .green
-        case "medium":
-            return .orange
-        case "high":
-            return .red
-        case "critical":
-            return Color(red: 0.7, green: 0, blue: 0) // Dark red
-        default:
-            return .green
         }
     }
 }
